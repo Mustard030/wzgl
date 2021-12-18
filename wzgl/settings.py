@@ -83,7 +83,8 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:80',
     'http://0.0.0.0:8381',
     'http://localhost:8381',
-    'http://1.12.228.230:8090'
+    'http://1.12.228.230:8090',
+    'http://1.12.228.230:8080',
 )
 ALLOWED_HOSTS = ['*']
 CORS_ALLOW_METHODS = (
