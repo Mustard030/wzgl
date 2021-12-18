@@ -161,8 +161,7 @@ def add_material(request):
                                      code=info['code'],
                                      standards=info['standards'],
                                      exe_standard=info['exe_standard'],
-                                     unit=Unit.objects.get(id=info["unit"]),
-                                     # unit=info['unit'],
+                                     unit=Unit.objects.get(name=info["unit"]),
                                      is_product=info['is_product'],
                                      remarks=info['remarks'],
                                      pro=Material.objects.get(id=info["pro"])
