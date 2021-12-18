@@ -80,8 +80,8 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:8080',
     'http://0.0.0.0:80',
     'http://localhost:80',
-    'http://0.0.0.0:8381',
-    'http://localhost:8381',
+    'http://0.0.0.0:8081',
+    'http://localhost:8081',
     'http://1.12.228.230:8090',
     'http://1.12.228.230:8080',
 )

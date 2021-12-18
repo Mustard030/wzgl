@@ -14,11 +14,11 @@ def dispatcher(request):
     # 将请求参数统一放入request 的 params 属性中，方便后续处理
 
     # GET请求 参数在url中，同过request 对象的 GET属性获取
-    if request.method == 'GET':
+    if request.method in ['GET', 'DELETE']:
         request.params = request.GET
 
     # POST/PUT/DELETE 请求 参数 从 request 对象的 body 属性中获取
-    elif request.method in ['POST', 'PUT', 'DELETE']:
+    elif request.method in ['POST', 'PUT']:
         # 根据接口，POST/PUT/DELETE 请求的消息体都是 json格式
         request.params = json.loads(request.body)
 
@@ -60,7 +60,8 @@ def list_unit(request):
 def list_pro(request):
     # 返回一个 QuerySet 对象 ，包含所有的表记录
     # qs=Material.objects.filter(pro__isnull=False).values_list('pro')
-    qs = Material.objects.filter(is_product=True).exclude(id__in= Material.objects.filter(pro__isnull=False).values_list('pro')).values('id', 'name')
+    qs = Material.objects.filter(is_product=True).exclude(
+        id__in=Material.objects.filter(pro__isnull=False).values_list('pro')).values('id', 'name')
     # 将 QuerySet 对象 转化为 list 类型
     #  Material.objects.filter(pro__isnull=False).values_list('pro')找出成品中已经关联了材料的成品
     # 否则不能 被 转化为 JSON 字符串
@@ -73,8 +74,11 @@ def list_material_filter(request):
     try:
         # .order_by('-id') 表示按照 id字段的值 倒序排列
         # 这样可以保证最新的记录显示在最前面
-        qs = Material.objects.filter(is_product=False).values('id', 'name', 'code', 'standards', 'exe_standard',
-                                                              'remarks', 'unit__name').order_by('-id')
+        filter_dict = {'is_product': False}
+        if request.params.get('isProduct', None) == 'true':
+            filter_dict['pro__isnull'] = False
+        qs = Material.objects.filter(**filter_dict).values('id', 'name', 'code', 'standards', 'exe_standard',
+                                                           'remarks', 'unit__name', 'pro__name').order_by('-id')
 
         # 查看是否有 关键字 搜索 参数
         keywords = request.params.get('keywords', None)
@@ -157,14 +161,18 @@ def add_material(request):
     # 并且插入到数据库中
     # 返回值 就是对应插入记录的对象
     info = request.params['data']
+    try:
+        pro = Material.objects.get(id=info["pro"])
+    except Material.DoesNotExist:
+        pro = None
     record = Material.objects.create(name=info['name'],
                                      code=info['code'],
                                      standards=info['standards'],
                                      exe_standard=info['exe_standard'],
-                                     unit=Unit.objects.get(name=info["unit"]),
+                                     unit=Unit.objects.get(id=info["unit"]),
                                      is_product=info['is_product'],
                                      remarks=info['remarks'],
-                                     pro=Material.objects.get(id=info["pro"])
+                                     pro=pro
                                      )
 
     return JsonResponse({'ret': 0, 'id': record.id})
@@ -189,7 +197,7 @@ def modify_material(request):
     if 'remarks' in newdata:
         material.remarks = newdata['remarks']
     if 'unit' in newdata:
-        material.unit = Unit.objects.get(id=newdata["unit"])
+        material.unit = Unit.objects.get(name=newdata["unit"])
     if 'code' in newdata:
         material.code = newdata['code']
     if 'standards' in newdata:
@@ -197,7 +205,8 @@ def modify_material(request):
     if 'exe_standard' in newdata:
         material.exe_standard = newdata['exe_standard']
     if 'pro' in newdata:
-        material.pro = Material.objects.get(id=newdata["pro"])
+        pro = Material.objects.get(name=newdata["pro"]) if newdata['pro'] else None
+        material.pro = pro
 
     # 注意，一定要执行save才能将修改信息保存到数据库
     material.save()
