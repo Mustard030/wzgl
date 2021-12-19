@@ -78,7 +78,7 @@ def list_material_filter(request):
         if request.params.get('isProduct', None) == 'true':
             filter_dict['pro__isnull'] = False
         qs = Material.objects.filter(**filter_dict).values('id', 'name', 'code', 'standards', 'exe_standard',
-                                                           'remarks', 'unit__name', 'pro__name').order_by('-id')
+                                                           'remarks', 'unit__id', 'pro__id', 'unit__name', 'pro__name').order_by('-id')
 
         # 查看是否有 关键字 搜索 参数
         keywords = request.params.get('keywords', None)
@@ -165,11 +165,15 @@ def add_material(request):
         pro = Material.objects.get(id=info["pro"])
     except Material.DoesNotExist:
         pro = None
+    try:
+        unit = Unit.objects.get(id=info["unit"])
+    except Unit.DoesNotExist:
+        unit = None
     record = Material.objects.create(name=info['name'],
                                      code=info['code'],
                                      standards=info['standards'],
                                      exe_standard=info['exe_standard'],
-                                     unit=Unit.objects.get(id=info["unit"]),
+                                     unit=unit,
                                      is_product=info['is_product'],
                                      remarks=info['remarks'],
                                      pro=pro
@@ -197,7 +201,11 @@ def modify_material(request):
     if 'remarks' in newdata:
         material.remarks = newdata['remarks']
     if 'unit' in newdata:
-        material.unit = Unit.objects.get(name=newdata["unit"])
+        try:
+            unit = Unit.objects.get(id=newdata["unit"])
+        except Unit.DoesNotExist:
+            unit = None
+        material.unit = unit
     if 'code' in newdata:
         material.code = newdata['code']
     if 'standards' in newdata:
@@ -205,7 +213,10 @@ def modify_material(request):
     if 'exe_standard' in newdata:
         material.exe_standard = newdata['exe_standard']
     if 'pro' in newdata:
-        pro = Material.objects.get(name=newdata["pro"]) if newdata['pro'] else None
+        try:
+            pro = Material.objects.get(id=newdata["pro"])
+        except Material.DoesNotExist:
+            pro = None
         material.pro = pro
 
     # 注意，一定要执行save才能将修改信息保存到数据库
