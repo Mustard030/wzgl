@@ -1,11 +1,13 @@
 import traceback
 
+import numpy as np
 from django.db.models import Q
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage
 from django.http import HttpResponse, JsonResponse
 from .models import Material, Unit
 import json
+import pandas as pd
 
 
 # Create your views here.
@@ -104,14 +106,24 @@ def list_material_filter(request):
         # 将 QuerySet 对象 转化为 list 类型
         retlist = list(page)
 
+        # 把原来的list转化成dataframe对象
+        df = pd.DataFrame(retlist).fillna("")
+        # 讲不符合命名规则的列名重命名（以字典格式），inplace代表在原dataframe对象上修改
+        df.rename(columns={'unit__id': 'unitID',
+                           'pro__id': 'proID',
+                           'unit__name': 'unitName',
+                           'pro__name': 'proName'}, inplace=True)
+        # 将dataframe转换为字典格式数据
+        retlist = df.to_dict("records")
         # total指定了 一共有多少数据
         return JsonResponse({'ret': 0, 'retlist': retlist, 'total': pgnt.count})
 
     except EmptyPage:
         return JsonResponse({'ret': 1, 'retlist': [], 'total': 0})
 
-    except:
-        return JsonResponse({'ret': 2, 'msg': f'未知错误\n{traceback.format_exc()}'})
+    except Exception as e:
+        return JsonResponse({'ret': 2, 'msg': f'未知错误\n{e}'})
+        # return JsonResponse({'ret': 2, 'msg': f'未知错误\n{traceback.format_exc()}'})
 
 
 # def list_material(request):
@@ -125,6 +137,7 @@ def list_material_filter(request):
 #
 #     return JsonResponse({'ret': 0, 'retlist': retlist})
 
+# 这个方法不需要了
 def list_material(request):
     try:
         # 返回一个 QuerySet 对象 ，包含所有的表记录
