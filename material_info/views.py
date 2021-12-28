@@ -15,7 +15,7 @@ import pandas as pd
 def dispatcher(request):
     # 将请求参数统一放入request 的 params 属性中，方便后续处理
 
-    # GET请求 参数在url中，同过request 对象的 GET属性获取
+    # GET/DELETE请求 参数在url中，同过request 对象的 GET属性获取
     if request.method in ['GET', 'DELETE']:
         request.params = request.GET
 
@@ -31,6 +31,8 @@ def dispatcher(request):
         return list_unit(request)
     if action == 'list_pro':
         return list_pro(request)
+    if action == 'list_product':
+        return list_product(request)
     if action == 'list_material':
         return list_material(request)
     elif action == 'add_material':
@@ -71,6 +73,17 @@ def list_pro(request):
     return JsonResponse({'ret': 0, 'retlist': retlist})
 
 
+# 查询所有的成品
+def list_product(request):
+    # 返回一个 QuerySet 对象 ，包含所有的表记录
+    # qs=Material.objects.filter(pro__isnull=False).values_list('pro')
+    qs = Material.objects.filter(is_product=True).values('id', 'name')
+    # 将 QuerySet 对象 转化为 list 类型
+    # 否则不能 被 转化为 JSON 字符串
+    retlist = list(qs)
+    return JsonResponse({'ret': 0, 'retlist': retlist})
+
+
 # 过滤查询
 def list_material_filter(request):
     try:
@@ -80,7 +93,8 @@ def list_material_filter(request):
         if request.params.get('isProduct', None) == 'true':
             filter_dict['pro__isnull'] = False
         qs = Material.objects.filter(**filter_dict).values('id', 'name', 'code', 'standards', 'exe_standard',
-                                                           'remarks', 'unit__id', 'pro__id', 'unit__name', 'pro__name').order_by('-id')
+                                                           'remarks', 'unit__id', 'pro__id', 'unit__name',
+                                                           'pro__name').order_by('-id')
 
         # 查看是否有 关键字 搜索 参数
         keywords = request.params.get('keywords', None)
