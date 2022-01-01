@@ -190,11 +190,11 @@ def add_material(request):
     info = request.params['data']
     try:
         pro = Material.objects.get(id=info["pro"])
-    except Material.DoesNotExist:
+    except (Material.DoesNotExist, ValueError):
         pro = None
     try:
         unit = Unit.objects.get(id=info["unit"])
-    except Unit.DoesNotExist:
+    except (Unit.DoesNotExist, ValueError):
         unit = None
     record = Material.objects.create(name=info['name'],
                                      code=info['code'],
