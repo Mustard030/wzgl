@@ -1,5 +1,5 @@
 import traceback
-
+from django.db.models import F
 import numpy as np
 from django.db.models import Q
 from django.shortcuts import render
@@ -15,7 +15,7 @@ import pandas as pd
 def dispatcher(request):
     # 将请求参数统一放入request 的 params 属性中，方便后续处理
 
-    # GET/DELETE请求 参数在url中，同过request 对象的 GET属性获取
+    # GET请求 参数在url中，同过request 对象的 GET属性获取
     if request.method in ['GET', 'DELETE']:
         request.params = request.GET
 
@@ -43,7 +43,10 @@ def dispatcher(request):
         return modify_material(request)
     elif action == 'del_material':
         return del_material(request)
-
+    elif action == 'list_material_name':
+        return list_material_name(request)
+    elif action == 'list_material_code':
+        return list_material_code(request)
     else:
         return JsonResponse({'ret': 1, 'msg': '不支持该类型http请求'})
 
@@ -78,6 +81,27 @@ def list_product(request):
     # 返回一个 QuerySet 对象 ，包含所有的表记录
     # qs=Material.objects.filter(pro__isnull=False).values_list('pro')
     qs = Material.objects.filter(is_product=True).values('id', 'name')
+    # 将 QuerySet 对象 转化为 list 类型
+    # 否则不能 被 转化为 JSON 字符串
+    retlist = list(qs)
+    return JsonResponse({'ret': 0, 'retlist': retlist})
+
+
+# 查询原材料名称
+def list_material_name(request):
+    # 返回一个 QuerySet 对象 ，包含所有的表记录
+    qs = Material.objects.filter(is_product=False).values('name')
+    # 将 QuerySet 对象 转化为 list 类型
+    # 否则不能 被 转化为 JSON 字符串
+    retlist = list(qs)
+    return JsonResponse({'ret': 0, 'retlist': retlist})
+
+
+# 查询根据原材料名称获的代号、规格型号、执行标准、单位等信息
+def list_material_code(request):
+    # 返回一个 QuerySet 对象 ，包含所有的表记录
+    query = request.params.get('name', None)
+    qs = Material.objects.annotate(unit_name=F('unit__name')).filter(is_product=False, name=query).values('code', 'standards', 'exe_standard', 'unit__name')
     # 将 QuerySet 对象 转化为 list 类型
     # 否则不能 被 转化为 JSON 字符串
     retlist = list(qs)
@@ -190,11 +214,11 @@ def add_material(request):
     info = request.params['data']
     try:
         pro = Material.objects.get(id=info["pro"])
-    except (Material.DoesNotExist, ValueError):
+    except Material.DoesNotExist:
         pro = None
     try:
         unit = Unit.objects.get(id=info["unit"])
-    except (Unit.DoesNotExist, ValueError):
+    except Unit.DoesNotExist:
         unit = None
     record = Material.objects.create(name=info['name'],
                                      code=info['code'],

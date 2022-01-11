@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -25,6 +27,7 @@ SECRET_KEY = 'django-insecure-x_97yer9t^n5813f8wla0c519vd!7sprvvp9vay(cuk85iv8aj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -36,8 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
     'material_info',
+    'purchase',
+    'user',
+    'company',
 ]
 
 MIDDLEWARE = [
@@ -50,7 +55,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # admin界面语言本地化
     'django.middleware.locale.LocaleMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'wzgl.urls'
@@ -73,30 +77,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wzgl.wsgi.application'
 
-CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ORIGIN_WHITELIST = (
-    'http://0.0.0.0:8080',
-    'http://localhost:8080',
-    'http://0.0.0.0:80',
-    'http://localhost:80',
-    'http://0.0.0.0:8081',
-    'http://localhost:8081',
-    'http://1.12.228.230:8090',
-    'http://1.12.228.230:8080',
-)
-ALLOWED_HOSTS = ['*']
-CORS_ALLOW_METHODS = (
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-    'VIEW',
-)
-CORS_ALLOW_HEADERS = ('*')
-
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -105,10 +85,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # 链接的是谁mysql 直接改最后的名字就行
         'NAME': 'wzgl',  # 数据库的名字
-        'USER': 'root',  # 链接用的用户名
-        'PASSWORD': 'fzm201120606',  # 数据库密码
-        'HOST': '1.12.228.230',  # 数据库地址
+        'USER': 'wzgl',  # 链接用的用户名
+        'PASSWORD': '13880118212',  # 数据库密码
+        'HOST': '127.0.0.1',  # 数据库地址
         'PORT': '3306',  # 访问数据库的端口号
+
     }
 }
 
