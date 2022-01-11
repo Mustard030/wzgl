@@ -85,8 +85,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # 链接的是谁mysql 直接改最后的名字就行
         'NAME': 'wzgl',  # 数据库的名字
-        'USER': 'wzgl',  # 链接用的用户名
-        'PASSWORD': '13880118212',  # 数据库密码
+        'USER': 'root',  # 链接用的用户名
+        'PASSWORD': 'fzm201120606',  # 数据库密码
         'HOST': '127.0.0.1',  # 数据库地址
         'PORT': '3306',  # 访问数据库的端口号
 
