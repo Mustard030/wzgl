@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-x_97yer9t^n5813f8wla0c519vd!7sprvvp9vay(cuk85iv8aj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -87,7 +87,7 @@ DATABASES = {
         'NAME': 'wzgl',  # 数据库的名字
         'USER': 'root',  # 链接用的用户名
         'PASSWORD': 'fzm201120606',  # 数据库密码
-        'HOST': '127.0.0.1',  # 数据库地址
+        'HOST': '1.12.228.230',  # 数据库地址
         'PORT': '3306',  # 访问数据库的端口号
 
     }
