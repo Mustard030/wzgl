@@ -55,17 +55,26 @@ def list_contract_filter(request):
                                      'remarks', 'supplier__name').order_by('-date')
         # 查看是否有 关键字 搜索 参数
         # 获取页面查询时间范围
-        start, end = request.params.getlist('dateRange[]')
-        start = datetime.datetime.strptime(start, '%Y-%m-%d')
-        end = datetime.datetime.strptime(end, '%Y-%m-%d')
+        conditions = dict()
         # 获取页面其他参数
         supplier = request.params.get('supplier', None)
         code = request.params.get('code', None)
         name = request.params.get('name', None)
         executing = request.params.get('executing', None)
-        conditions = Q(id__icontains=code.strip()) & Q(date__range=(start, end)) & Q(
-            name__icontains=name.strip()) & Q(supplier__name__icontains=supplier) & Q(state=executing)
-        qs = qs.filter(conditions)
+        if executing == 'true':
+            conditions['state'] = 0
+
+        conditions['supplier__name__icontains'] = supplier
+        conditions['id__icontains'] = code.strip()
+        conditions['name__icontains'] = name.strip()
+
+        if "dateRange[]" in request.params:
+            start, end = request.params.getlist('dateRange[]')
+            start = datetime.datetime.strptime(start, '%Y-%m-%d')
+            end = datetime.datetime.strptime(end, '%Y-%m-%d')
+            conditions['date__range'] = (start, end)
+
+        qs = qs.filter(**conditions)
         # 要获取的第几页
         pagenum = request.params['pagenum']
 

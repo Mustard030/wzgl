@@ -68,7 +68,7 @@ def list_pro(request):
     # 返回一个 QuerySet 对象 ，包含所有的表记录
     # qs=Material.objects.filter(pro__isnull=False).values_list('pro')
     qs = Material.objects.filter(is_product=True).exclude(
-        id__in=Material.objects.filter(pro__isnull=False).values_list('pro')).values('id', 'name')
+        id__in=Material.objects.filter(pro__isnull=False).values_list('pro')).values('id', 'name', 'code')
     # 将 QuerySet 对象 转化为 list 类型
     #  Material.objects.filter(pro__isnull=False).values_list('pro')找出成品中已经关联了材料的成品
     # 否则不能 被 转化为 JSON 字符串
