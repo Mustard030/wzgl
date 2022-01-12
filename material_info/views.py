@@ -254,16 +254,7 @@ def add_material(request):
         conditions['remarks'] = remarks.strip()
     conditions['unit'] = unit
     conditions['pro'] = pro
-    record=Material.objects.create(**conditions)
-    # record = Material.objects.create(name=info.get('name', None).strip(),
-    #                                  code=info.get('code', None).strip(),
-    #                                  standards=info.get('standards', None).strip(),
-    #                                  exe_standard=info.get('exe_standard', None).strip(),
-    #                                  unit=unit,
-    #                                  is_product=info['is_product'],
-    #                                  remarks=info.get('remarks', None).strip(),
-    #                                  pro=pro
-    #                                  )
+    record = Material.objects.create(**conditions)
 
     return JsonResponse({'ret': 0, 'id': record.id})
 
