@@ -5,7 +5,7 @@ import pandas as pd
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 from django.http import JsonResponse
-from company.models import supplier as supply
+from company.models import Supplier as supply
 from material_info.models import Material
 from .models import Contract, ContractDetail, Price
 
@@ -128,7 +128,7 @@ def add_contract(request):
     # supplier是将获取的供应商转换为supply对象
     try:
         supplier = supply.objects.get(name=info["supplier"])
-    except supplier.DoesNotExist:
+    except supply.DoesNotExist:
         supplier = None
     # 将合同基本信息写入到合同表
     record1 = Contract.objects.create(id=info['contract_id'],

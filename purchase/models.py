@@ -5,12 +5,8 @@ from django.db.models import DateField
 from django.utils import timezone
 
 from material_info.models import Material
-from company.models import supplier
+from company.models import Supplier
 from user.models import user
-
-
-
-
 
 
 # 合同表
@@ -21,17 +17,17 @@ class Contract(models.Model):
         (2, u'终止')
     )
     id = models.CharField("合同编号", max_length=32, primary_key=True, unique=True)
-    supplier = models.ForeignKey(supplier, on_delete=models.PROTECT,default="")
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, default="")
     name = models.CharField("合同名称", max_length=32, blank=True)
-    date = models.DateField("签订日期", blank=True, null=True,default=timezone.now)
+    date = models.DateField("签订日期", blank=True, null=True, default=timezone.now)
     place = models.CharField("签订地点", max_length=64, blank=True, null=True)
     money = models.DecimalField("合同价格", max_digits=12, decimal_places=2, blank=True, null=True)
     state = models.IntegerField("合同状态", default=0, choices=state_choice)
-    terminator = models.ForeignKey(user, on_delete=models.PROTECT,blank=True, null=True)
+    terminator = models.ForeignKey(user, on_delete=models.PROTECT, blank=True, null=True)
     terminal_date = models.DateField("终止日期", blank=True, null=True)
     terminal_reason = models.CharField("终止原因", max_length=128, blank=True, null=True)
     # raw_id = models.OneToOneField('self', verbose_name='原材料ID', on_delete=models.SET_NULL, blank=True, null=True)
-    remarks = models.CharField("备注", max_length=128, blank=True,null=True)
+    remarks = models.CharField("备注", max_length=128, blank=True, null=True)
 
 
 # 合同文件表
@@ -55,7 +51,7 @@ class ContractDetail(models.Model):
 class Price(models.Model):
     id = models.AutoField("物资明细id", primary_key=True, unique=True)
     contract_detail = models.ForeignKey(ContractDetail, on_delete=models.PROTECT)
-    date = models.DateField("价格生效时间",default=timezone.now)
+    date = models.DateField("价格生效时间", default=timezone.now)
     unit_price = models.DecimalField("单价", max_digits=12, decimal_places=2)
     amount = models.DecimalField("此价格对应数量", max_digits=12, decimal_places=2)
     change_date = models.DateField("变更日期", default="")

@@ -5,7 +5,7 @@ from django.shortcuts import render
 
 
 # Create your views here.
-from company.models import supplier
+from company.models import Supplier
 
 
 def dispatcher(request):
@@ -29,7 +29,7 @@ def dispatcher(request):
 
 def list_supplier(request):
     # 返回一个 QuerySet 对象 ，包含所有的表记录
-    qs = supplier.objects.values('name')
+    qs = Supplier.objects.values('name')
     # 将 QuerySet 对象 转化为 list 类型
     # 否则不能 被 转化为 JSON 字符串
     retlist = list(qs)

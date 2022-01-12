@@ -3,7 +3,7 @@ from django.db import models
 
 # Create your models here.
 # 供应商表
-class supplier(models.Model):
+class Supplier(models.Model):
     name = models.CharField("供应商名称", max_length=64, unique=True, primary_key=True)
     corporation = models.CharField("法人", max_length=8, blank=True, null=True)
     code = models.CharField("机构代码", max_length=32, blank=True, null=True)
@@ -19,7 +19,7 @@ class supplier(models.Model):
 
 
 # 客户表
-class customer(models.Model):
+class Customer(models.Model):
     name = models.CharField("客户名称", max_length=64, unique=True, primary_key=True)
     corporation = models.CharField("法人", max_length=8, blank=True, null=True)
     code = models.CharField("机构代码", max_length=32, blank=True, null=True)

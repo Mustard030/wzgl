@@ -8,6 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from .models import Material, Unit
 import json
 import pandas as pd
+from purchase.models import ContractDetail
 
 
 # Create your views here.
@@ -39,8 +40,8 @@ def dispatcher(request):
         return add_material(request)
     elif action == 'list_material_filter':
         return list_material_filter(request)
-    elif action == 'modify_material':
-        return modify_material(request)
+    elif action == 'edit_material':
+        return edit_material(request)
     elif action == 'del_material':
         return del_material(request)
     elif action == 'list_material_name':
@@ -101,7 +102,10 @@ def list_material_name(request):
 def list_material_code(request):
     # 返回一个 QuerySet 对象 ，包含所有的表记录
     query = request.params.get('name', None)
-    qs = Material.objects.annotate(unit_name=F('unit__name')).filter(is_product=False, name=query).values('code', 'standards', 'exe_standard', 'unit__name')
+    qs = Material.objects.annotate(unit_name=F('unit__name')).filter(is_product=False, name=query).values('code',
+                                                                                                          'standards',
+                                                                                                          'exe_standard',
+                                                                                                          'unit__name')
     # 将 QuerySet 对象 转化为 list 类型
     # 否则不能 被 转化为 JSON 字符串
     retlist = list(qs)
@@ -121,14 +125,14 @@ def list_material_filter(request):
                                                            'pro__name').order_by('-id')
 
         # 查看是否有 关键字 搜索 参数
-        keywords = request.params.get('keywords', None)
-        if keywords:
-            conditions = [Q(name__contains=one) | Q(code__contains=one) for one in keywords.split(' ') if one]
-            query = Q()
-            for condition in conditions:
-                query |= condition
-            qs = qs.filter(query)
-
+        conditions = dict()
+        name = request.params.get('name', None)
+        code = request.params.get('code', None)
+        if name:
+            conditions['name__icontains'] = name.strip()
+        if code:
+            conditions['code__icontains'] = code.strip()
+        qs = qs.filter(**conditions)
         # 要获取的第几页
         pagenum = request.params['pagenum']
 
@@ -212,28 +216,59 @@ def add_material(request):
     # 并且插入到数据库中
     # 返回值 就是对应插入记录的对象
     info = request.params['data']
-    try:
+    conditions = dict()
+    # 判断前端传来的name\code，如果不为空则去掉字符前后的空格，并保存在查询字典里面
+    if info['name']:
+        conditions['name'] = info['name'].strip()
+    if info['code']:
+        conditions['code'] = info['code'].strip()
+    # 查找用户添加的名称和代号在数据表中存在的话则提示不能添加（精确查找）
+    if Material.objects.filter(**conditions).exists():
+        return JsonResponse({'ret': 1, 'id': '原材料重复，不能添加'})
+    # 判断前端数据是否带有成品，有的话将其对象化为pro
+    if info["pro"]:
         pro = Material.objects.get(id=info["pro"])
-    except Material.DoesNotExist:
+    else:
         pro = None
+    # 判断单位是否存在与数据库中，有的话将其对象化为unit
     try:
         unit = Unit.objects.get(id=info["unit"])
     except Unit.DoesNotExist:
         unit = None
-    record = Material.objects.create(name=info['name'],
-                                     code=info['code'],
-                                     standards=info['standards'],
-                                     exe_standard=info['exe_standard'],
-                                     unit=unit,
-                                     is_product=info['is_product'],
-                                     remarks=info['remarks'],
-                                     pro=pro
-                                     )
+    # 将添加的原材料的参数保存在字典conditions,判断前端数据用get(参数,None)，为空时则为None,不为空时删除空格。
+    conditions = dict()
+    name = info.get('name', None)
+    if name:
+        conditions['name'] = name.strip()
+    code = info.get('code', None)
+    if code:
+        conditions['code'] = code.strip()
+    standards = info.get('standards', None)
+    if standards:
+        conditions['standards'] = standards.strip()
+    exe_standard = info.get('exe_standard', None)
+    if exe_standard:
+        conditions['exe_standard'] = exe_standard.strip()
+    remarks = info.get('remarks', None)
+    if remarks:
+        conditions['remarks'] = remarks.strip()
+    conditions['unit'] = unit
+    conditions['pro'] = pro
+    record=Material.objects.create(**conditions)
+    # record = Material.objects.create(name=info.get('name', None).strip(),
+    #                                  code=info.get('code', None).strip(),
+    #                                  standards=info.get('standards', None).strip(),
+    #                                  exe_standard=info.get('exe_standard', None).strip(),
+    #                                  unit=unit,
+    #                                  is_product=info['is_product'],
+    #                                  remarks=info.get('remarks', None).strip(),
+    #                                  pro=pro
+    #                                  )
 
     return JsonResponse({'ret': 0, 'id': record.id})
 
 
-def modify_material(request):
+def edit_material(request):
     # 从请求消息中 获取修改材料的信息
     # 找到该材料，并且进行修改操作
 
@@ -264,31 +299,44 @@ def modify_material(request):
     if 'exe_standard' in newdata:
         material.exe_standard = newdata['exe_standard']
     if 'pro' in newdata:
-        try:
-            pro = Material.objects.get(id=newdata["pro"])
-        except Material.DoesNotExist:
-            pro = None
-        material.pro = pro
+        if newdata['pro'] != "":
+            try:
+                pro = Material.objects.get(id=newdata["pro"])
+            except Material.DoesNotExist:
+                pro = None
+            material.pro = pro
+        else:
+            material.pro = None
 
     # 注意，一定要执行save才能将修改信息保存到数据库
     material.save()
     #
-    return JsonResponse({'ret': 0})
+    return JsonResponse({'ret': 0,
+                         'msg': '修改成功'})
 
 
 def del_material(request):
     materid = request.params['id']
 
     try:
-        # 根据 id 从数据库中找到相应的客户记录
+        # 根据 id 从数据库中找到相应的原材料记录
         material = Material.objects.get(id=materid)
     except Material.DoesNotExist:
         return JsonResponse({
             'ret': 1,
             'msg': f'id 为`{materid}`的客户不存在'
         })
-
-    # delete 方法就将该记录从数据库中删除了
-    material.delete()
-
-    return JsonResponse({'ret': 0})
+    # 判断该原材料是否关联了成品
+    if material.pro_id:
+        return JsonResponse({
+            'ret': 1,
+            'msg': '该原材料已经关联成品，不能删除'})
+    # 判断该原材料是否关联了合同
+    elif ContractDetail.objects.filter(material=material).exists():
+        return JsonResponse({
+            'ret': 1,
+            'msg': '该原材料已经关联合同或者发货信息，不能删除'})
+    else:
+        material.delete()
+        # delete 方法就将该记录从数据库中删除了
+        return JsonResponse({'ret': 0})
