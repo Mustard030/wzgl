@@ -224,7 +224,7 @@ def add_material(request):
         conditions['code'] = info['code'].strip()
     # 查找用户添加的名称和代号在数据表中存在的话则提示不能添加（精确查找）
     if Material.objects.filter(**conditions).exists():
-        return JsonResponse({'ret': 1, 'id': '原材料重复，不能添加'})
+        return JsonResponse({'ret': 1, 'msg': '原材料重复，不能添加'})
     # 判断前端数据是否带有成品，有的话将其对象化为pro
     if info["pro"]:
         pro = Material.objects.get(id=info["pro"])
